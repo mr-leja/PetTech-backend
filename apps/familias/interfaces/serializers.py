@@ -24,13 +24,13 @@ class CondicionesHogarSerializer(serializers.ModelSerializer):
 class FamiliaSerializer(serializers.ModelSerializer):
     condiciones_hogar = CondicionesHogarSerializer(read_only=True)
     usuario_email = serializers.SerializerMethodField()
-    foto_cedula_url = serializers.SerializerMethodField()
+    edad = serializers.SerializerMethodField()
 
     class Meta:
         model = Familia
         fields = [
             'id', 'usuario', 'usuario_email', 'nombre_familia',
-            'cedula', 'foto_cedula_url', 'edad',
+            'cedula', 'edad', 'fecha_nacimiento',
             'telefono', 'ciudad', 'departamento', 'direccion',
             'redes_sociales',
             'condiciones_hogar', 'fecha_registro',
@@ -40,12 +40,12 @@ class FamiliaSerializer(serializers.ModelSerializer):
     def get_usuario_email(self, obj):
         return obj.usuario.email
 
-    def get_foto_cedula_url(self, obj):
-        if obj.foto_cedula:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.foto_cedula.url)
-            return obj.foto_cedula.url
+    def get_edad(self, obj):
+        if obj.fecha_nacimiento:
+            from datetime import date
+            today = date.today()
+            b = obj.fecha_nacimiento
+            return today.year - b.year - ((today.month, today.day) < (b.month, b.day))
         return None
 
 
@@ -53,7 +53,7 @@ class FamiliaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Familia
         fields = [
-            'nombre_familia', 'cedula', 'foto_cedula', 'edad',
+            'nombre_familia', 'cedula', 'fecha_nacimiento',
             'telefono', 'ciudad', 'departamento', 'direccion', 'redes_sociales',
         ]
 
@@ -63,7 +63,10 @@ class FamiliaCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('El teléfono debe tener al menos 7 dígitos.')
         return cleaned
 
-    def validate_edad(self, value):
-        if value is not None and value < 18:
+    def validate_fecha_nacimiento(self, value):
+        from datetime import date
+        today = date.today()
+        age = today.year - value.year - ((today.month, today.day) < (value.month, value.day))
+        if age < 18:
             raise serializers.ValidationError('Debes ser mayor de edad (18 años o más).')
         return value
