@@ -58,24 +58,7 @@ services:
     networks:
       - pettech_network
     restart: on-failure
-    command: >
-      sh -c "
-        echo 'Esperando PostgreSQL...' &&
-        python -c "
-          import socket, time
-          while True:
-            try:
-              s = socket.create_connection(('db', 5432), timeout=2)
-              s.close()
-              print('PostgreSQL listo.')
-              break
-            except OSError:
-              print('Reintentando en 2s...')
-              time.sleep(2)
-        " &&
-        python manage.py migrate --noinput &&
-        python manage.py runserver 0.0.0.0:8000
-      "
+    entrypoint: /app/scripts/entrypoint.sh
 
 networks:
   pettech_network:
