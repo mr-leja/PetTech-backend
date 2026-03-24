@@ -29,7 +29,7 @@ class MiFamiliaView(APIView):
         familia = repository.obtener_por_usuario(request.user.id)
         if not familia:
             return Response({'familia': None, 'tiene_familia': False})
-        return Response({'familia': FamiliaSerializer(familia).data, 'tiene_familia': True})
+        return Response({'familia': FamiliaSerializer(familia, context={'request': request}).data, 'tiene_familia': True})
 
     def post(self, request):
         if repository.obtener_por_usuario(request.user.id):
@@ -39,7 +39,7 @@ class MiFamiliaView(APIView):
             familia = repository.crear_familia(usuario=request.user, **serializer.validated_data)
             logger.info('Familia registrada para usuario: %s', request.user.email)
             return Response(
-                FamiliaSerializer(familia).data,
+                FamiliaSerializer(familia, context={'request': request}).data,
                 status=status.HTTP_201_CREATED,
             )
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

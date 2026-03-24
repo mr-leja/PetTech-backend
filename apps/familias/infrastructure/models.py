@@ -9,9 +9,14 @@ class Familia(models.Model):
         related_name='familia',
     )
     nombre_familia = models.CharField(max_length=200)
+    cedula = models.CharField(max_length=20, default='')
+    foto_cedula = models.ImageField(upload_to='cedulas/', blank=True, null=True)
+    edad = models.PositiveSmallIntegerField(null=True, blank=True)
     telefono = models.CharField(max_length=20)
     ciudad = models.CharField(max_length=100)
     departamento = models.CharField(max_length=100)
+    direccion = models.CharField(max_length=300, default='')
+    redes_sociales = models.CharField(max_length=200, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
@@ -31,6 +36,21 @@ class CondicionesHogar(models.Model):
         ('FINCA', 'Finca'),
         ('OTRO', 'Otro'),
     ]
+    PROPIEDAD_CHOICES = [
+        ('PROPIA', 'Propia'),
+        ('ALQUILADA', 'Alquilada'),
+    ]
+    TAMANO_HOGAR_CHOICES = [
+        ('PEQUENO', 'Pequeño (< 50 m²)'),
+        ('MEDIANO', 'Mediano (50–120 m²)'),
+        ('GRANDE', 'Grande (> 120 m²)'),
+    ]
+    INGRESOS_CHOICES = [
+        ('MENOS_1SMLV', 'Menos de 1 SMLV'),
+        ('1_2SMLV', '1–2 SMLV'),
+        ('2_4SMLV', '2–4 SMLV'),
+        ('MAS_4SMLV', 'Más de 4 SMLV'),
+    ]
 
     familia = models.OneToOneField(
         Familia,
@@ -38,10 +58,17 @@ class CondicionesHogar(models.Model):
         related_name='condiciones_hogar',
     )
     tipo_vivienda = models.CharField(max_length=15, choices=TIPO_VIVIENDA_CHOICES)
+    propiedad_vivienda = models.CharField(max_length=15, choices=PROPIEDAD_CHOICES, default='PROPIA')
     tiene_patio = models.BooleanField(default=False)
     numero_personas = models.PositiveSmallIntegerField()
+    tiene_ninos = models.BooleanField(default=False)
+    tamano_hogar = models.CharField(max_length=10, choices=TAMANO_HOGAR_CHOICES, default='MEDIANO')
     tiene_mascotas_actualmente = models.BooleanField(default=False)
+    otras_mascotas = models.JSONField(default=list)
+    tiempo_solo_horas = models.PositiveSmallIntegerField(default=0)
+    ingresos_estimados = models.CharField(max_length=30, choices=INGRESOS_CHOICES, blank=True)
     experiencia_mascotas = models.TextField(blank=True)
+    motivacion = models.TextField(blank=True)
     acuerdo_responsabilidad = models.BooleanField(
         default=False,
         help_text='Usuario aceptó el acuerdo de responsabilidad (HU-05)'
