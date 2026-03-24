@@ -35,17 +35,14 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: pettech_backend
-    env_file:
-      - path: .env
-        required: false
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-dev-key-change-in-prod}
-      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
+      DJANGO_DEBUG: "True"
       DB_NAME: ${DB_NAME:-pettech}
       DB_USER: ${DB_USER:-pettech_user}
       DB_PASSWORD: ${DB_PASSWORD:-pettech_password}
       DB_HOST: db
-      DB_PORT: 5432
+      DB_PORT: "5432"
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minio_admin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minio_password}
       MINIO_BUCKET: ${MINIO_BUCKET:-pettech-fotos}
@@ -61,13 +58,24 @@ services:
     networks:
       - pettech_network
     restart: on-failure
-    command: >-
-      sh -c "echo 'Esperando PostgreSQL...' &&
-             until pg_isready -h db -p 5432 -U ${DB_USER:-pettech_user}; do sleep 2; done &&
-             echo 'DB lista. Ejecutando migraciones...' &&
-             python manage.py migrate --noinput &&
-             echo 'Iniciando servidor...' &&
-             python manage.py runserver 0.0.0.0:8000"
+    command: >
+      sh -c "
+        echo 'Esperando PostgreSQL...' &&
+        python -c "
+          import socket, time
+          while True:
+            try:
+              s = socket.create_connection(('db', 5432), timeout=2)
+              s.close()
+              print('PostgreSQL listo.')
+              break
+            except OSError:
+              print('Reintentando en 2s...')
+              time.sleep(2)
+        " &&
+        python manage.py migrate --noinput &&
+        python manage.py runserver 0.0.0.0:8000
+      "
 
 networks:
   pettech_network:
