@@ -3,9 +3,9 @@ services:
     image: postgres:16.2
     container_name: pettech_db
     environment:
-      POSTGRES_DB: ${DB_NAME:-pettech}
-      POSTGRES_USER: ${DB_USER:-pettech_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-pettech_password}
+      POSTGRES_DB: pettech
+      POSTGRES_USER: pettech_user
+      POSTGRES_PASSWORD: pettech_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -19,8 +19,8 @@ services:
     container_name: pettech_minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minio_admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minio_password}
+      MINIO_ROOT_USER: minio_admin
+      MINIO_ROOT_PASSWORD: minio_password
     volumes:
       - minio_data:/data
     ports:
@@ -36,6 +36,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: pettech_backend
     environment:
+      DJANGO_SETTINGS_MODULE: config.settings.development
       DJANGO_SECRET_KEY: django-insecure-dev-key-change-in-prod
       DJANGO_DEBUG: "True"
       DB_NAME: pettech
@@ -57,8 +58,11 @@ services:
       - db
     networks:
       - pettech_network
-    restart: on-failure
-    command: sh -c "until python manage.py migrate --noinput; do echo 'DB no lista, reintentando en 3s...'; sleep 3; done && python manage.py runserver 0.0.0.0:8000"
+    restart: always
+    command:
+      - sh
+      - -c
+      - "python manage.py wait_for_db && python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
 
 networks:
   pettech_network:
