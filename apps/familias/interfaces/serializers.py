@@ -24,13 +24,12 @@ class CondicionesHogarSerializer(serializers.ModelSerializer):
 class FamiliaSerializer(serializers.ModelSerializer):
     condiciones_hogar = CondicionesHogarSerializer(read_only=True)
     usuario_email = serializers.SerializerMethodField()
-    edad = serializers.SerializerMethodField()
 
     class Meta:
         model = Familia
         fields = [
             'id', 'usuario', 'usuario_email', 'nombre_familia',
-            'cedula', 'edad', 'fecha_nacimiento',
+            'cedula', 'fecha_nacimiento',
             'telefono', 'ciudad', 'departamento', 'direccion',
             'redes_sociales',
             'condiciones_hogar', 'fecha_registro',
@@ -39,14 +38,6 @@ class FamiliaSerializer(serializers.ModelSerializer):
 
     def get_usuario_email(self, obj):
         return obj.usuario.email
-
-    def get_edad(self, obj):
-        if obj.fecha_nacimiento:
-            from datetime import date
-            today = date.today()
-            b = obj.fecha_nacimiento
-            return today.year - b.year - ((today.month, today.day) < (b.month, b.day))
-        return None
 
 
 class FamiliaCreateSerializer(serializers.ModelSerializer):
