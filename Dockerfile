@@ -1,8 +1,8 @@
 # Stage 1: build dependencies
 FROM python:3.12-slim-bookworm AS builder
 WORKDIR /app
-COPY requirements/production.txt .
-RUN pip install --no-cache-dir --prefix=/install -r production.txt
+COPY requirements/ requirements/
+RUN pip install --no-cache-dir --prefix=/install -r requirements/production.txt
 
 # Stage 2: runtime
 FROM python:3.12-slim-bookworm AS production
