@@ -35,9 +35,20 @@ class RegistroView(APIView):
 
 
 class PerfilView(APIView):
-    """Devuelve el perfil del usuario autenticado."""
+    """Devuelve, actualiza y elimina el perfil del usuario autenticado."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         serializer = UsuarioSerializer(request.user)
         return Response(serializer.data)
+
+    def delete(self, request):
+        user = request.user
+        if user.rol == 'ADMIN':
+            return Response(
+                {'error': 'Los administradores no pueden eliminar su cuenta desde aquí.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        logger.info('Cuenta eliminada por el usuario: %s', user.email)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
