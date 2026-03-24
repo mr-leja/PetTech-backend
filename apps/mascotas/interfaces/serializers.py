@@ -1,6 +1,13 @@
 from rest_framework import serializers
 from apps.mascotas.infrastructure.models import Mascota
 
+_WRITE_FIELDS = [
+    'nombre', 'especie', 'raza', 'edad_anios', 'edad_unidad',
+    'fecha_nacimiento', 'tamano', 'peso', 'sexo',
+    'descripcion', 'estado', 'foto',
+    'nivel_energia', 'historial_vacunas', 'historia_mascota', 'info_adicional',
+]
+
 
 class MascotaSerializer(serializers.ModelSerializer):
     registrado_por_email = serializers.SerializerMethodField(read_only=True)
@@ -9,8 +16,10 @@ class MascotaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mascota
         fields = [
-            'id', 'nombre', 'especie', 'raza', 'edad_anios',
+            'id', 'nombre', 'especie', 'raza', 'edad_anios', 'edad_unidad',
+            'fecha_nacimiento', 'tamano', 'peso', 'sexo',
             'descripcion', 'estado', 'foto', 'foto_url',
+            'nivel_energia', 'historial_vacunas', 'historia_mascota', 'info_adicional',
             'registrado_por', 'registrado_por_email',
             'fecha_ingreso', 'fecha_actualizacion',
         ]
@@ -30,19 +39,19 @@ class MascotaSerializer(serializers.ModelSerializer):
 class MascotaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mascota
-        fields = ['nombre', 'especie', 'raza', 'edad_anios', 'descripcion', 'estado', 'foto']
+        fields = _WRITE_FIELDS
 
     def validate_edad_anios(self, value):
-        if value < 0 or value > 30:
-            raise serializers.ValidationError('La edad debe estar entre 0 y 30 años.')
+        if value < 0 or value > 99:
+            raise serializers.ValidationError('La edad debe estar entre 0 y 99.')
         return value
 
 
 class MascotaUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mascota
-        fields = ['nombre', 'especie', 'raza', 'edad_anios', 'descripcion', 'estado', 'foto']
-        extra_kwargs = {field: {'required': False} for field in fields}
+        fields = _WRITE_FIELDS
+        extra_kwargs = {field: {'required': False} for field in _WRITE_FIELDS}
 
     def validate_estado(self, value):
         instance = self.instance
