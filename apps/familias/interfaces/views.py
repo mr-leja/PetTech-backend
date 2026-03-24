@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from core.permissions import IsAdministrador
 from apps.familias.infrastructure.repositories import FamiliaRepository
 from apps.familias.infrastructure.models import Familia
@@ -22,8 +23,9 @@ repository = FamiliaRepository()
 
 
 class MiFamiliaView(APIView):
-    """GET/POST /api/v1/familias/mia/ — registro y consulta de la propia familia (HU-04)"""
+    """GET/POST/PATCH /api/v1/familias/mia/ — registro, consulta y edición de la propia familia"""
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
         familia = repository.obtener_por_usuario(request.user.id)
@@ -42,6 +44,16 @@ class MiFamiliaView(APIView):
                 FamiliaSerializer(familia, context={'request': request}).data,
                 status=status.HTTP_201_CREATED,
             )
+        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request):
+        familia = repository.obtener_por_usuario(request.user.id)
+        if not familia:
+            raise FamiliaNoEncontrada()
+        serializer = FamiliaCreateSerializer(familia, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(FamiliaSerializer(familia, context={'request': request}).data)
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -79,6 +91,20 @@ class CondicionesHogarView(APIView):
                 CondicionesHogarSerializer(condiciones).data,
                 status=status.HTTP_201_CREATED,
             )
+        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request):
+        familia = repository.obtener_por_usuario(request.user.id)
+        if not familia:
+            raise FamiliaNoEncontrada()
+        try:
+            condiciones = familia.condiciones_hogar
+        except Exception:
+            raise FamiliaNoEncontrada()
+        serializer = CondicionesHogarSerializer(condiciones, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(CondicionesHogarSerializer(condiciones).data)
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
