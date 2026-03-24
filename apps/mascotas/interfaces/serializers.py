@@ -5,13 +5,14 @@ _WRITE_FIELDS = [
     'nombre', 'especie', 'raza', 'edad_anios', 'edad_unidad',
     'fecha_nacimiento', 'tamano', 'peso', 'sexo',
     'descripcion', 'estado', 'foto',
-    'nivel_energia', 'historial_vacunas', 'historia_mascota', 'info_adicional',
+    'nivel_energia', 'historial_vacunas', 'carnet_vacunas', 'historia_mascota', 'info_adicional',
 ]
 
 
 class MascotaSerializer(serializers.ModelSerializer):
     registrado_por_email = serializers.SerializerMethodField(read_only=True)
     foto_url = serializers.SerializerMethodField(read_only=True)
+    carnet_vacunas_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Mascota
@@ -19,12 +20,16 @@ class MascotaSerializer(serializers.ModelSerializer):
             'id', 'nombre', 'especie', 'raza', 'edad_anios', 'edad_unidad',
             'fecha_nacimiento', 'tamano', 'peso', 'sexo',
             'descripcion', 'estado', 'foto', 'foto_url',
-            'nivel_energia', 'historial_vacunas', 'historia_mascota', 'info_adicional',
+            'nivel_energia', 'historial_vacunas', 'carnet_vacunas', 'carnet_vacunas_url',
+            'historia_mascota', 'info_adicional',
             'registrado_por', 'registrado_por_email',
             'fecha_ingreso', 'fecha_actualizacion',
         ]
         read_only_fields = ['id', 'registrado_por', 'fecha_ingreso', 'fecha_actualizacion']
-        extra_kwargs = {'foto': {'write_only': True, 'required': False}}
+        extra_kwargs = {
+            'foto': {'write_only': True, 'required': False},
+            'carnet_vacunas': {'write_only': True, 'required': False},
+        }
 
     def get_registrado_por_email(self, obj):
         return obj.registrado_por.email if obj.registrado_por else None
@@ -33,6 +38,12 @@ class MascotaSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if obj.foto and request:
             return request.build_absolute_uri(obj.foto.url)
+        return None
+
+    def get_carnet_vacunas_url(self, obj):
+        request = self.context.get('request')
+        if obj.carnet_vacunas and request:
+            return request.build_absolute_uri(obj.carnet_vacunas.url)
         return None
 
 

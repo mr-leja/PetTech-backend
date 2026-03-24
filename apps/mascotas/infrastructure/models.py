@@ -48,7 +48,8 @@ class Mascota(models.Model):
     estado = models.CharField(max_length=15, choices=ESTADO_CHOICES, default='DISPONIBLE')
     foto = models.ImageField(upload_to='mascotas/', null=True, blank=True)
     nivel_energia = models.CharField(max_length=6, choices=ENERGIA_CHOICES, blank=True)
-    historial_vacunas = models.TextField(blank=True)
+    historial_vacunas = models.JSONField(default=list, blank=True)
+    carnet_vacunas = models.FileField(upload_to='carnets/', null=True, blank=True)
     historia_mascota = models.TextField(blank=True)
     info_adicional = models.TextField(blank=True)
     registrado_por = models.ForeignKey(
