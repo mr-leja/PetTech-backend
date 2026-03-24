@@ -1,0 +1,64 @@
+services:
+  db:
+    image: postgres:16.2
+    container_name: pettech_db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-pettech}
+      POSTGRES_USER: ${DB_USER:-pettech_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pettech_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - pettech_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pettech_user} -d ${DB_NAME:-pettech}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:RELEASE.2024-01-16T16-07-38Z
+    container_name: pettech_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minio_password}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - pettech_network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: pettech_backend
+    env_file: .env
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pettech_network
+    restart: unless-stopped
+    command: >-
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+networks:
+  pettech_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
