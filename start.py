@@ -1,0 +1,23 @@
+﻿import socket, time, os, subprocess, sys
+
+host = os.getenv("DB_HOST", "db")
+port = int(os.getenv("DB_PORT", "5432"))
+print(f"[PetTech] Esperando PostgreSQL en {host}:{port}...", flush=True)
+
+for i in range(60):
+    try:
+        s = socket.create_connection((host, port), timeout=2)
+        s.close()
+        print("[PetTech] PostgreSQL listo!", flush=True)
+        break
+    except OSError:
+        print(f"[PetTech] Intento {i+1}/60 - reintentando en 2s...", flush=True)
+        time.sleep(2)
+else:
+    print("[PetTech] ERROR: No se pudo conectar a PostgreSQL", flush=True)
+    sys.exit(1)
+
+print("[PetTech] Ejecutando migraciones...", flush=True)
+subprocess.run(["python", "manage.py", "migrate", "--noinput"], check=True)
+print("[PetTech] Iniciando servidor Django...", flush=True)
+os.execvp("python", ["python", "manage.py", "runserver", "0.0.0.0:8000"])
