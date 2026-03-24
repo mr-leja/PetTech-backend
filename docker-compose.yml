@@ -33,7 +33,6 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.dev
     container_name: pettech_backend
     environment:
       PYTHONUNBUFFERED: "1"
@@ -51,8 +50,10 @@ services:
       MINIO_ENDPOINT: http://minio:9000
       DEFAULT_ADMIN_EMAIL: admin@pettech.com
       DEFAULT_ADMIN_PASSWORD: Admin1234!
+      MEDIA_ROOT: /media
     volumes:
       - .:/app
+      - pettech_media:/media
     ports:
       - "8000:8000"
     depends_on:
@@ -68,3 +69,4 @@ networks:
 volumes:
   postgres_data:
   minio_data:
+  pettech_media:

@@ -99,9 +99,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Media files
+# Media files — en contenedor se sobreescribe con MEDIA_ROOT=/media (volumen nombrado)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = env('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
