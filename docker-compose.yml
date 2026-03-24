@@ -36,19 +36,19 @@ services:
       dockerfile: Dockerfile.dev
     container_name: pettech_backend
     environment:
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-dev-key-change-in-prod}
+      DJANGO_SECRET_KEY: django-insecure-dev-key-change-in-prod
       DJANGO_DEBUG: "True"
-      DB_NAME: ${DB_NAME:-pettech}
-      DB_USER: ${DB_USER:-pettech_user}
-      DB_PASSWORD: ${DB_PASSWORD:-pettech_password}
+      DB_NAME: pettech
+      DB_USER: pettech_user
+      DB_PASSWORD: pettech_password
       DB_HOST: db
       DB_PORT: "5432"
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minio_admin}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minio_password}
-      MINIO_BUCKET: ${MINIO_BUCKET:-pettech-fotos}
+      MINIO_ACCESS_KEY: minio_admin
+      MINIO_SECRET_KEY: minio_password
+      MINIO_BUCKET: pettech-fotos
       MINIO_ENDPOINT: http://minio:9000
-      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-admin@pettech.com}
-      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-Admin1234!}
+      DEFAULT_ADMIN_EMAIL: admin@pettech.com
+      DEFAULT_ADMIN_PASSWORD: Admin1234!
     volumes:
       - .:/app
     ports:
@@ -58,7 +58,7 @@ services:
     networks:
       - pettech_network
     restart: on-failure
-    entrypoint: /app/scripts/entrypoint.sh
+    command: sh -c "until python manage.py migrate --noinput; do echo 'DB no lista, reintentando en 3s...'; sleep 3; done && python manage.py runserver 0.0.0.0:8000"
 
 networks:
   pettech_network:
