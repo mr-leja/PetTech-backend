@@ -61,14 +61,9 @@ class FamiliaCreateSerializer(serializers.ModelSerializer):
             return value
         allowed_types = ('image/jpeg', 'image/png', 'image/webp')
         if value.content_type not in allowed_types:
-            raise serializers.ValidationError(
-                'Solo se permiten imágenes JPEG, PNG o WebP.'
-            )
-        max_size_mb = 5
-        if value.size > max_size_mb * 1024 * 1024:
-            raise serializers.ValidationError(
-                f'La imagen no puede superar {max_size_mb} MB.'
-            )
+            raise serializers.ValidationError('Solo se permiten imágenes JPEG, PNG o WebP.')
+        if value.size > 5 * 1024 * 1024:
+            raise serializers.ValidationError('La imagen no puede superar 5 MB.')
         return value
 
     def validate_telefono(self, value):
