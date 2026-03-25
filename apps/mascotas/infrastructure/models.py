@@ -30,6 +30,27 @@ class Mascota(models.Model):
         ('MEDIO', 'Medio'),
         ('ALTO', 'Alto'),
     ]
+    INDEPENDENCIA_CHOICES = [
+        ('BAJO', 'Baja (necesita compañía constante)'),
+        ('MEDIO', 'Media (puede estar solo moderadamente)'),
+        ('ALTO', 'Alta (muy independiente)'),
+    ]
+    COMPLEJIDAD_CHOICES = [
+        ('BAJO', 'Baja (ideal para principiantes)'),
+        ('MEDIO', 'Media (algo de experiencia recomendada)'),
+        ('ALTO', 'Alta (requiere experiencia)'),
+    ]
+    SOCIABILIDAD_CHOICES = [
+        ('BAJO', 'Baja (prefiere estar solo)'),
+        ('MEDIO', 'Media (se adapta)'),
+        ('ALTO', 'Alta (muy sociable con otros animales)'),
+    ]
+    COSTO_CHOICES = [
+        ('MENOS_1SMLV', 'Menos de 1 SMLV mensual'),
+        ('1_2SMLV', '1–2 SMLV mensual'),
+        ('2_4SMLV', '2–4 SMLV mensual'),
+        ('MAS_4SMLV', 'Más de 4 SMLV mensual'),
+    ]
     EDAD_UNIDAD_CHOICES = [
         ('ANIOS', 'Años'),
         ('MESES', 'Meses'),
@@ -48,6 +69,11 @@ class Mascota(models.Model):
     estado = models.CharField(max_length=15, choices=ESTADO_CHOICES, default='DISPONIBLE')
     foto = models.ImageField(upload_to='mascotas/', null=True, blank=True)
     nivel_energia = models.CharField(max_length=6, choices=ENERGIA_CHOICES, blank=True)
+    nivel_independencia = models.CharField(max_length=6, choices=INDEPENDENCIA_CHOICES, blank=True)
+    nivel_complejidad = models.CharField(max_length=6, choices=COMPLEJIDAD_CHOICES, blank=True)
+    nivel_sociabilidad = models.CharField(max_length=6, choices=SOCIABILIDAD_CHOICES, blank=True)
+    apta_ninos = models.BooleanField(null=True, blank=True)
+    costo_estimado_mensual = models.CharField(max_length=30, choices=COSTO_CHOICES, blank=True)
     historial_vacunas = models.JSONField(default=list, blank=True)
     carnet_vacunas = models.FileField(upload_to='carnets/', null=True, blank=True)
     historia_mascota = models.TextField(blank=True)

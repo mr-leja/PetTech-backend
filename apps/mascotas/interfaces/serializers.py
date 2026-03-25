@@ -5,7 +5,9 @@ _WRITE_FIELDS = [
     'nombre', 'especie', 'raza', 'edad_anios', 'edad_unidad',
     'fecha_nacimiento', 'tamano', 'peso', 'sexo',
     'descripcion', 'estado', 'foto',
-    'nivel_energia', 'historial_vacunas', 'carnet_vacunas', 'historia_mascota', 'info_adicional',
+    'nivel_energia', 'nivel_independencia', 'nivel_complejidad',
+    'nivel_sociabilidad', 'apta_ninos', 'costo_estimado_mensual',
+    'historial_vacunas', 'carnet_vacunas', 'historia_mascota', 'info_adicional',
 ]
 
 
@@ -20,7 +22,9 @@ class MascotaSerializer(serializers.ModelSerializer):
             'id', 'nombre', 'especie', 'raza', 'edad_anios', 'edad_unidad',
             'fecha_nacimiento', 'tamano', 'peso', 'sexo',
             'descripcion', 'estado', 'foto', 'foto_url',
-            'nivel_energia', 'historial_vacunas', 'carnet_vacunas', 'carnet_vacunas_url',
+            'nivel_energia', 'nivel_independencia', 'nivel_complejidad',
+            'nivel_sociabilidad', 'apta_ninos', 'costo_estimado_mensual',
+            'historial_vacunas', 'carnet_vacunas', 'carnet_vacunas_url',
             'historia_mascota', 'info_adicional',
             'registrado_por', 'registrado_por_email',
             'fecha_ingreso', 'fecha_actualizacion',
