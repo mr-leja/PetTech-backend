@@ -12,6 +12,11 @@ class SolicitudAdopcionSerializer(serializers.ModelSerializer):
     mascota_sexo = serializers.CharField(source='mascota.sexo', read_only=True)
     mascota_tamano = serializers.CharField(source='mascota.tamano', read_only=True)
     mascota_nivel_energia = serializers.CharField(source='mascota.nivel_energia', read_only=True)
+    mascota_nivel_independencia = serializers.CharField(source='mascota.nivel_independencia', read_only=True)
+    mascota_nivel_complejidad = serializers.CharField(source='mascota.nivel_complejidad', read_only=True)
+    mascota_nivel_sociabilidad = serializers.CharField(source='mascota.nivel_sociabilidad', read_only=True)
+    mascota_apta_ninos = serializers.NullBooleanField(source='mascota.apta_ninos', read_only=True)
+    mascota_costo_estimado_mensual = serializers.CharField(source='mascota.costo_estimado_mensual', read_only=True)
     mascota_descripcion = serializers.CharField(source='mascota.descripcion', read_only=True)
     mascota_historia = serializers.CharField(source='mascota.historia_mascota', read_only=True)
     mascota_estado = serializers.CharField(source='mascota.estado', read_only=True)
@@ -35,7 +40,11 @@ class SolicitudAdopcionSerializer(serializers.ModelSerializer):
             # Mascota
             'mascota', 'mascota_nombre', 'mascota_especie', 'mascota_raza',
             'mascota_edad_anios', 'mascota_edad_unidad', 'mascota_sexo',
-            'mascota_tamano', 'mascota_nivel_energia', 'mascota_descripcion',
+            'mascota_tamano', 'mascota_nivel_energia',
+            'mascota_nivel_independencia', 'mascota_nivel_complejidad',
+            'mascota_nivel_sociabilidad', 'mascota_apta_ninos',
+            'mascota_costo_estimado_mensual',
+            'mascota_descripcion',
             'mascota_historia', 'mascota_estado', 'mascota_foto_url',
             # Familia / adoptante
             'familia', 'familia_nombre', 'familia_cedula', 'familia_telefono',
