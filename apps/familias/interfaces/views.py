@@ -53,6 +53,11 @@ class MiFamiliaView(APIView):
         serializer = FamiliaCreateSerializer(familia, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            if request.data.get('borrar_foto_perfil') == 'true' and not serializer.validated_data.get('foto_perfil'):
+                if familia.foto_perfil:
+                    familia.foto_perfil.delete(save=False)
+                familia.foto_perfil = None
+                familia.save(update_fields=['foto_perfil'])
             return Response(FamiliaSerializer(familia, context={'request': request}).data)
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
