@@ -71,6 +71,11 @@ class MascotaDetailView(APIView):
         serializer = MascotaUpdateSerializer(mascota, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            if request.data.get('borrar_foto') == 'true' and not serializer.validated_data.get('foto'):
+                if mascota.foto:
+                    mascota.foto.delete(save=False)
+                mascota.foto = None
+                mascota.save(update_fields=['foto'])
             return Response(MascotaSerializer(mascota, context={'request': request}).data)
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
