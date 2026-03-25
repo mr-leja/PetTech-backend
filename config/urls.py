@@ -8,4 +8,5 @@ urlpatterns = [
     path('api/v1/', include('apps.usuarios.interfaces.urls')),
     path('api/v1/', include('apps.mascotas.interfaces.urls')),
     path('api/v1/', include('apps.familias.interfaces.urls')),
+    path('api/v1/', include('apps.adopciones.interfaces.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

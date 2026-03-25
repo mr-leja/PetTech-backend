@@ -28,6 +28,23 @@ class MascotaListCreateView(APIView):
         estado = request.query_params.get('estado')
         especie = request.query_params.get('especie')
         mascotas = repository.listar(estado=estado, especie=especie)
+
+        # Visibilidad por rol (HU-08):
+        # FAMILIA → solo DISPONIBLE + ADOPTADO + EN_PROCESO si tienen solicitud pendiente.
+        if request.user.rol != 'ADMIN':
+            from apps.adopciones.infrastructure.repositories import SolicitudRepository
+            sol_repo = SolicitudRepository()
+            try:
+                familia = request.user.familia
+                mascotas_en_proceso_ids = sol_repo.ids_mascotas_en_proceso_para_familia(familia.id)
+            except Exception:
+                mascotas_en_proceso_ids = set()
+
+            mascotas = mascotas.filter(
+                estado__in=['DISPONIBLE', 'ADOPTADO']
+            ) | mascotas.filter(estado='EN_PROCESO', id__in=mascotas_en_proceso_ids)
+            mascotas = mascotas.order_by('-fecha_ingreso')
+
         paginator = StandardPagination()
         page = paginator.paginate_queryset(mascotas, request)
         serializer = MascotaSerializer(page, many=True, context={'request': request})

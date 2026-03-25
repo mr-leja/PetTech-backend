@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'apps.usuarios',
     'apps.mascotas',
     'apps.familias',
+    'apps.adopciones',
 ]
 
 MIDDLEWARE = [
