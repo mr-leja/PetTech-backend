@@ -16,6 +16,7 @@ class Familia(models.Model):
     departamento = models.CharField(max_length=100)
     direccion = models.CharField(max_length=300, default='')
     redes_sociales = models.CharField(max_length=200, blank=True)
+    foto_perfil = models.ImageField(upload_to='perfiles/', null=True, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 

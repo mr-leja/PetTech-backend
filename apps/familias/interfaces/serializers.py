@@ -24,6 +24,7 @@ class CondicionesHogarSerializer(serializers.ModelSerializer):
 class FamiliaSerializer(serializers.ModelSerializer):
     condiciones_hogar = CondicionesHogarSerializer(read_only=True)
     usuario_email = serializers.SerializerMethodField()
+    foto_perfil_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Familia
@@ -31,10 +32,16 @@ class FamiliaSerializer(serializers.ModelSerializer):
             'id', 'usuario', 'usuario_email', 'nombre_familia',
             'cedula', 'fecha_nacimiento',
             'telefono', 'ciudad', 'departamento', 'direccion',
-            'redes_sociales',
+            'redes_sociales', 'foto_perfil', 'foto_perfil_url',
             'condiciones_hogar', 'fecha_registro',
         ]
         read_only_fields = ['id', 'usuario', 'fecha_registro']
+
+    def get_foto_perfil_url(self, obj):
+        request = self.context.get('request')
+        if obj.foto_perfil and request:
+            return request.build_absolute_uri(obj.foto_perfil.url)
+        return None
 
     def get_usuario_email(self, obj):
         return obj.usuario.email
@@ -45,8 +52,24 @@ class FamiliaCreateSerializer(serializers.ModelSerializer):
         model = Familia
         fields = [
             'nombre_familia', 'cedula', 'fecha_nacimiento',
-            'telefono', 'ciudad', 'departamento', 'direccion', 'redes_sociales',
+            'telefono', 'ciudad', 'departamento', 'direccion',
+            'redes_sociales', 'foto_perfil',
         ]
+
+    def validate_foto_perfil(self, value):
+        if value is None:
+            return value
+        allowed_types = ('image/jpeg', 'image/png', 'image/webp')
+        if value.content_type not in allowed_types:
+            raise serializers.ValidationError(
+                'Solo se permiten imágenes JPEG, PNG o WebP.'
+            )
+        max_size_mb = 5
+        if value.size > max_size_mb * 1024 * 1024:
+            raise serializers.ValidationError(
+                f'La imagen no puede superar {max_size_mb} MB.'
+            )
+        return value
 
     def validate_telefono(self, value):
         cleaned = ''.join(c for c in value if c.isdigit() or c in ('+', '-', ' '))
