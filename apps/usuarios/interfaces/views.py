@@ -40,7 +40,13 @@ class RegistroView(APIView):
                 },
                 status=status.HTTP_201_CREATED,
             )
-        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        errors = serializer.errors
+        if 'email' in errors:
+            return Response(
+                {'error': 'El correo ya está registrado'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response({'error': errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PerfilView(APIView):
