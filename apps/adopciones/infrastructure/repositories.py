@@ -52,5 +52,7 @@ class AdopcionRepository:
 
     def listar_todas(self):
         return Adopcion.objects.select_related(
-            'solicitud__mascota', 'solicitud__familia'
-        ).all()
+            'solicitud__mascota',
+            'solicitud__familia',
+            'solicitud__familia__usuario',
+        ).all().order_by('-fecha_adopcion')

@@ -90,18 +90,46 @@ class SolicitudAdopcionCreateSerializer(serializers.ModelSerializer):
 
 
 class AdopcionSerializer(serializers.ModelSerializer):
+    # Mascota — detalle completo
     mascota_nombre = serializers.CharField(source='solicitud.mascota.nombre', read_only=True)
     mascota_especie = serializers.CharField(source='solicitud.mascota.especie', read_only=True)
+    mascota_raza = serializers.CharField(source='solicitud.mascota.raza', read_only=True)
+    mascota_edad_anios = serializers.IntegerField(source='solicitud.mascota.edad_anios', read_only=True)
+    mascota_edad_unidad = serializers.CharField(source='solicitud.mascota.edad_unidad', read_only=True)
+    mascota_sexo = serializers.CharField(source='solicitud.mascota.sexo', read_only=True)
+    mascota_tamano = serializers.CharField(source='solicitud.mascota.tamano', read_only=True)
+    mascota_descripcion = serializers.CharField(source='solicitud.mascota.descripcion', read_only=True)
     mascota_foto_url = serializers.SerializerMethodField()
+
+    # Familia / adoptante — detalle completo
     familia_nombre = serializers.CharField(source='solicitud.familia.nombre_familia', read_only=True)
     familia_email = serializers.CharField(source='solicitud.familia.usuario.email', read_only=True)
+    familia_cedula = serializers.CharField(source='solicitud.familia.cedula', read_only=True)
+    familia_telefono = serializers.CharField(source='solicitud.familia.telefono', read_only=True)
+    familia_ciudad = serializers.CharField(source='solicitud.familia.ciudad', read_only=True)
+    familia_departamento = serializers.CharField(source='solicitud.familia.departamento', read_only=True)
+    familia_foto_perfil_url = serializers.SerializerMethodField()
+
+    # Datos de la solicitud original
+    solicitud_mensaje = serializers.CharField(source='solicitud.mensaje', read_only=True)
+    solicitud_notas_admin = serializers.CharField(source='solicitud.notas_admin', read_only=True)
+    solicitud_fecha = serializers.DateTimeField(source='solicitud.fecha_solicitud', read_only=True)
 
     class Meta:
         model = Adopcion
         fields = [
             'id', 'solicitud',
-            'mascota_nombre', 'mascota_especie', 'mascota_foto_url',
-            'familia_nombre', 'familia_email',
+            # Mascota
+            'mascota_nombre', 'mascota_especie', 'mascota_raza',
+            'mascota_edad_anios', 'mascota_edad_unidad', 'mascota_sexo',
+            'mascota_tamano', 'mascota_descripcion', 'mascota_foto_url',
+            # Familia
+            'familia_nombre', 'familia_email', 'familia_cedula',
+            'familia_telefono', 'familia_ciudad', 'familia_departamento',
+            'familia_foto_perfil_url',
+            # Solicitud original
+            'solicitud_mensaje', 'solicitud_notas_admin', 'solicitud_fecha',
+            # Adopción
             'fecha_adopcion', 'notas',
         ]
         read_only_fields = ['id', 'fecha_adopcion']
@@ -110,5 +138,11 @@ class AdopcionSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if obj.solicitud.mascota.foto and request:
             return request.build_absolute_uri(obj.solicitud.mascota.foto.url)
+        return None
+
+    def get_familia_foto_perfil_url(self, obj):
+        request = self.context.get('request')
+        if obj.solicitud.familia.foto_perfil and request:
+            return request.build_absolute_uri(obj.solicitud.familia.foto_perfil.url)
         return None
 
