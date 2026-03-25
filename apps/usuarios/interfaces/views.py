@@ -14,6 +14,15 @@ class LoginView(TokenObtainPairView):
     """Login — retorna access + refresh tokens con datos del usuario."""
     permission_classes = [AllowAny]
 
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email', '')
+        if not Usuario.objects.filter(email=email).exists():
+            return Response(
+                {'error': 'El usuario no se encuentra registrado'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return super().post(request, *args, **kwargs)
+
 
 class RegistroView(APIView):
     """Registro de nuevo usuario con rol FAMILIA."""
