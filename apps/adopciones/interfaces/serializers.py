@@ -15,7 +15,7 @@ class SolicitudAdopcionSerializer(serializers.ModelSerializer):
     mascota_nivel_independencia = serializers.CharField(source='mascota.nivel_independencia', read_only=True)
     mascota_nivel_complejidad = serializers.CharField(source='mascota.nivel_complejidad', read_only=True)
     mascota_nivel_sociabilidad = serializers.CharField(source='mascota.nivel_sociabilidad', read_only=True)
-    mascota_apta_ninos = serializers.NullBooleanField(source='mascota.apta_ninos', read_only=True)
+    mascota_apta_ninos = serializers.BooleanField(source='mascota.apta_ninos', read_only=True, allow_null=True)
     mascota_costo_estimado_mensual = serializers.CharField(source='mascota.costo_estimado_mensual', read_only=True)
     mascota_descripcion = serializers.CharField(source='mascota.descripcion', read_only=True)
     mascota_historia = serializers.CharField(source='mascota.historia_mascota', read_only=True)
