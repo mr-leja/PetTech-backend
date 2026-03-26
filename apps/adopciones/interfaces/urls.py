@@ -5,6 +5,7 @@ from apps.adopciones.interfaces.views import (
     SolicitudAdopcionDecisionView,
     AdopcionListView,
     ContadoresFamiliaView,
+    CalendarioVacunacionView,
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path('solicitudes/<int:pk>/', SolicitudAdopcionDetailView.as_view(), name='solicitudes-detail'),
     path('solicitudes/<int:pk>/<str:accion>/', SolicitudAdopcionDecisionView.as_view(), name='solicitudes-decision'),
     path('adopciones/', AdopcionListView.as_view(), name='adopciones-list'),
+    path('adopciones/<int:adopcion_id>/calendario/', CalendarioVacunacionView.as_view(), name='adopcion-calendario'),
 ]

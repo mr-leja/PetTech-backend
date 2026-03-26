@@ -6,11 +6,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from core.permissions import IsAdministrador
 from apps.adopciones.infrastructure.models import SolicitudAdopcion
-from apps.adopciones.infrastructure.repositories import SolicitudRepository, AdopcionRepository
+from apps.adopciones.infrastructure.repositories import SolicitudRepository, AdopcionRepository, CalendarioRepository
 from apps.adopciones.interfaces.serializers import (
     SolicitudAdopcionSerializer,
     SolicitudAdopcionCreateSerializer,
     AdopcionSerializer,
+    CalendarioVacunacionSerializer,
 )
 from apps.adopciones.domain.exceptions import (
     SolicitudNoEncontrada,
@@ -19,9 +20,12 @@ from apps.adopciones.domain.exceptions import (
     FamiliaRequerida,
 )
 
+from apps.adopciones.domain.vaccination import schedule_generator
+
 logger = logging.getLogger(__name__)
 solicitud_repo = SolicitudRepository()
 adopcion_repo = AdopcionRepository()
+calendario_repo = CalendarioRepository()
 
 
 class SolicitudAdopcionListCreateView(APIView):
@@ -119,7 +123,32 @@ class SolicitudAdopcionDecisionView(APIView):
             mascota.save(update_fields=['estado'])
 
             # Registrar adopción realizada
-            adopcion_repo.crear(solicitud=solicitud)
+            adopcion = adopcion_repo.crear(solicitud=solicitud)
+
+            # Generar calendario de vacunación automáticamente (HU-14)
+            try:
+                calendario_generado = schedule_generator.generate(
+                    especie=mascota.especie,
+                    edad_anios=mascota.edad_anios,
+                    edad_unidad=mascota.edad_unidad,
+                    historial_vacunas=mascota.historial_vacunas or [],
+                    fecha_adopcion=adopcion.fecha_adopcion.date(),
+                )
+                calendario_repo.crear_con_entradas(
+                    adopcion=adopcion,
+                    vacunas=calendario_generado.vacunas,
+                    notas=calendario_generado.notas,
+                )
+                logger.info(
+                    'Calendario de vacunación generado para adopción #%s (%d vacunas).',
+                    adopcion.id,
+                    len(calendario_generado.vacunas),
+                )
+            except Exception:
+                logger.exception(
+                    'Error al generar el calendario de vacunación para adopción #%s.',
+                    adopcion.id,
+                )
 
             logger.info(
                 'Solicitud #%s aprobada. Mascota %s adoptada por %s.',
@@ -251,3 +280,37 @@ class ContadoresFamiliaView(APIView):
 
         contadores = solicitud_repo.contadores_familia(familia.id)
         return Response(contadores)
+
+
+class CalendarioVacunacionView(APIView):
+    """
+    GET /api/v1/adopciones/<adopcion_id>/calendario/ — HU-15.
+
+    - ADMIN: accede a cualquier calendario.
+    - FAMILIA: sólo accede al calendario de sus propias adopciones.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, adopcion_id: int):
+        calendario = calendario_repo.obtener_por_adopcion(adopcion_id)
+
+        if calendario is None:
+            return Response(
+                {'error': 'Calendario no encontrado para esta adopción.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user = request.user
+        if user.rol != 'ADMIN':
+            try:
+                familia = user.familia
+                if calendario.adopcion.solicitud.familia_id != familia.id:
+                    return Response(
+                        {'error': 'No tienes permiso para ver este calendario.'},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+            except Exception:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
+        serializer = CalendarioVacunacionSerializer(calendario, context={'request': request})
+        return Response(serializer.data)
