@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.adopciones.infrastructure.models import SolicitudAdopcion, Adopcion
+from apps.adopciones.infrastructure.models import SolicitudAdopcion, Adopcion, CalendarioVacunacion, EntradaCalendario
 
 
 class SolicitudAdopcionSerializer(serializers.ModelSerializer):
@@ -153,5 +153,45 @@ class AdopcionSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if obj.solicitud.familia.foto_perfil and request:
             return request.build_absolute_uri(obj.solicitud.familia.foto_perfil.url)
+        return None
+
+
+class EntradaCalendarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EntradaCalendario
+        fields = [
+            'id', 'nombre_vacuna', 'descripcion',
+            'fecha_sugerida', 'es_refuerzo', 'completada',
+        ]
+        read_only_fields = ['id']
+
+
+class CalendarioVacunacionSerializer(serializers.ModelSerializer):
+    entradas = EntradaCalendarioSerializer(many=True, read_only=True)
+
+    # Datos de la mascota (read-only, para contexto en el frontend)
+    mascota_nombre = serializers.CharField(
+        source='adopcion.solicitud.mascota.nombre', read_only=True
+    )
+    mascota_especie = serializers.CharField(
+        source='adopcion.solicitud.mascota.especie', read_only=True
+    )
+    mascota_foto_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CalendarioVacunacion
+        fields = [
+            'id', 'adopcion',
+            'mascota_nombre', 'mascota_especie', 'mascota_foto_url',
+            'notas', 'fecha_generacion',
+            'entradas',
+        ]
+        read_only_fields = ['id', 'fecha_generacion']
+
+    def get_mascota_foto_url(self, obj):
+        request = self.context.get('request')
+        mascota = obj.adopcion.solicitud.mascota
+        if mascota.foto and request:
+            return request.build_absolute_uri(mascota.foto.url)
         return None
 
