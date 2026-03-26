@@ -175,6 +175,46 @@ class SolicitudAdopcionDetailView(APIView):
 
         return Response(SolicitudAdopcionSerializer(solicitud, context={'request': request}).data)
 
+    def delete(self, request, pk):
+        """DELETE /api/v1/solicitudes/{pk}/ — La familia cancela su solicitud PENDIENTE."""
+        solicitud = solicitud_repo.obtener_por_id(pk)
+        if not solicitud:
+            raise SolicitudNoEncontrada()
+
+        user = request.user
+        if user.rol == 'ADMIN':
+            return Response(
+                {'error': 'El administrador no puede cancelar solicitudes de familia.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            if solicitud.familia.usuario_id != user.id:
+                return Response(
+                    {'error': 'No tienes permiso para cancelar esta solicitud.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+        except Exception:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        if solicitud.estado != 'PENDIENTE':
+            return Response(
+                {'error': 'Solo puedes cancelar solicitudes que estén pendientes de revisión.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        mascota = solicitud.mascota
+        mascota.estado = 'DISPONIBLE'
+        mascota.save(update_fields=['estado'])
+
+        solicitud.delete()
+
+        logger.info(
+            'Solicitud cancelada por familia. Mascota %s vuelve a DISPONIBLE.',
+            mascota.nombre,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class AdopcionListView(APIView):
     """GET /api/v1/adopciones/ — ADMIN ve todas; FAMILIA ve las suyas."""
