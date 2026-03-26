@@ -4,7 +4,8 @@ API REST con Django 5, Clean Architecture, JWT y PostgreSQL.
 
 ## Stack
 - Python 3.12, Django 5, Django REST Framework
-- PostgreSQL 16, MinIO (fotos)
+- PostgreSQL 16
+- Almacenamiento de imágenes: Amazon S3 (producción) / filesystem local (desarrollo)
 - JWT via `djangorestframework-simplejwt`
 - Podman / podman-compose
 
@@ -154,3 +155,42 @@ pip install -r requirements/development.txt
 python manage.py migrate
 python manage.py runserver
 ```
+
+---
+
+## Almacenamiento de imágenes con Amazon S3
+
+Las fotos de mascotas y los carnets de vacunas pueden almacenarse en S3.  
+Por defecto (`USE_S3=False`) se usa el sistema de archivos local (carpeta `media/`).
+
+### Activar S3
+
+1. **Crear el bucket** en AWS (p. ej. `pettech-fotos`) en la región deseada.
+2. Habilitar acceso público de lectura para los objetos del bucket (o usar CloudFront).
+3. Crear un usuario IAM con política `AmazonS3FullAccess` (o política mínima sobre ese bucket) y obtener `Access Key ID` y `Secret Access Key`.
+4. Copiar `.env.example` a `.env` y completar las variables:
+
+```env
+USE_S3=True
+AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+AWS_REGION=us-east-1
+AWS_S3_BUCKET_NAME=pettech-fotos
+# Dominio personalizado (CloudFront u otro CDN) — opcional
+AWS_S3_CUSTOM_DOMAIN=
+```
+
+5. Reiniciar el servidor. Las imágenes nuevas se subirán automáticamente a S3.  
+   Las imágenes guardadas localmente **no** se migran automáticamente; deben subirse al bucket manualmente si es necesario.
+
+### Variables de entorno S3
+
+| Variable | Descripción | Requerida con USE_S3=True |
+|---|---|---|
+| `USE_S3` | Activa (`True`) o desactiva (`False`) S3 | Siempre |
+| `AWS_ACCESS_KEY_ID` | Clave de acceso IAM | Sí |
+| `AWS_SECRET_ACCESS_KEY` | Clave secreta IAM | Sí |
+| `AWS_REGION` | Región del bucket (ej. `us-east-1`) | Sí |
+| `AWS_S3_BUCKET_NAME` | Nombre del bucket | Sí |
+| `AWS_S3_CUSTOM_DOMAIN` | CDN / dominio personalizado | No |
+| `AWS_S3_ENDPOINT_URL` | Endpoint alternativo (p. ej. MinIO local) | No |

@@ -100,10 +100,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Media files — en contenedor se sobreescribe con MEDIA_ROOT=/media (volumen nombrado)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = env('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # REST Framework
@@ -140,13 +136,33 @@ CORS_ALLOWED_ORIGINS = env.list(
 )
 CORS_ALLOW_CREDENTIALS = True
 
-# MinIO / S3 settings
-AWS_ACCESS_KEY_ID = env('MINIO_ACCESS_KEY', default='minio_admin')
-AWS_SECRET_ACCESS_KEY = env('MINIO_SECRET_KEY', default='minio_password')
-AWS_STORAGE_BUCKET_NAME = env('MINIO_BUCKET', default='pettech-fotos')
-AWS_S3_ENDPOINT_URL = env('MINIO_ENDPOINT', default='http://localhost:9000')
-AWS_S3_FILE_OVERWRITE = False
-AWS_DEFAULT_ACL = 'public-read'
+# S3 / Storage ----------------------------------------------------------------
+# USE_S3=True  →  sube archivos a Amazon S3 (producción).
+# USE_S3=False →  guarda archivos en el sistema de archivos local (desarrollo).
+USE_S3 = env.bool('USE_S3', default=False)
+
+if USE_S3:
+    # --- Credenciales y configuración ---
+    AWS_ACCESS_KEY_ID     = env('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = env('AWS_S3_BUCKET_NAME')
+    AWS_S3_REGION_NAME    = env('AWS_REGION', default='us-east-1')
+    # Para MinIO local en desarrollo: env('AWS_S3_ENDPOINT_URL', default=None)
+    AWS_S3_ENDPOINT_URL   = env('AWS_S3_ENDPOINT_URL', default=None)
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL       = 'public-read'
+    AWS_S3_CUSTOM_DOMAIN  = env('AWS_S3_CUSTOM_DOMAIN', default=None)
+
+    STORAGES = {
+        'default': {'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage'},
+        'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+    }
+    # Las URLs públicas son absolutas; no se usa MEDIA_URL local
+    MEDIA_URL = env('MEDIA_URL', default=f'https://{env("AWS_S3_BUCKET_NAME", default="")}.s3.{env("AWS_REGION", default="us-east-1")}.amazonaws.com/')
+else:
+    # Almacenamiento local
+    MEDIA_URL  = '/media/'
+    MEDIA_ROOT = env('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
 
 # Admin defaults
 DEFAULT_ADMIN_EMAIL = env('DEFAULT_ADMIN_EMAIL', default='admin@pettech.com')

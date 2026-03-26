@@ -39,16 +39,23 @@ class MascotaSerializer(serializers.ModelSerializer):
         return obj.registrado_por.email if obj.registrado_por else None
 
     def get_foto_url(self, obj):
+        if not obj.foto:
+            return None
+        url = obj.foto.url
+        # S3/storages devuelve URLs absolutas; local requiere build_absolute_uri
+        if url.startswith('http'):
+            return url
         request = self.context.get('request')
-        if obj.foto and request:
-            return request.build_absolute_uri(obj.foto.url)
-        return None
+        return request.build_absolute_uri(url) if request else url
 
     def get_carnet_vacunas_url(self, obj):
+        if not obj.carnet_vacunas:
+            return None
+        url = obj.carnet_vacunas.url
+        if url.startswith('http'):
+            return url
         request = self.context.get('request')
-        if obj.carnet_vacunas and request:
-            return request.build_absolute_uri(obj.carnet_vacunas.url)
-        return None
+        return request.build_absolute_uri(url) if request else url
 
 
 class MascotaCreateSerializer(serializers.ModelSerializer):
