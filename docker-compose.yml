@@ -14,43 +14,16 @@ services:
       - pettech_network
     restart: unless-stopped
 
-  minio:
-    image: minio/minio:RELEASE.2024-01-16T16-07-38Z
-    container_name: pettech_minio
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minio_admin
-      MINIO_ROOT_PASSWORD: minio_password
-    volumes:
-      - minio_data:/data
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    networks:
-      - pettech_network
-    restart: unless-stopped
-
   backend:
     build:
       context: .
     container_name: pettech_backend
+    env_file:
+      - .env
     environment:
       PYTHONUNBUFFERED: "1"
       DJANGO_SETTINGS_MODULE: config.settings.development
-      DJANGO_SECRET_KEY: django-insecure-dev-key-change-in-prod
-      DJANGO_DEBUG: "True"
-      DB_NAME: pettech
-      DB_USER: pettech_user
-      DB_PASSWORD: pettech_password
       DB_HOST: db
-      DB_PORT: "5432"
-      MINIO_ACCESS_KEY: minio_admin
-      MINIO_SECRET_KEY: minio_password
-      MINIO_BUCKET: pettech-fotos
-      MINIO_ENDPOINT: http://minio:9000
-      DEFAULT_ADMIN_EMAIL: admin@pettech.com
-      DEFAULT_ADMIN_PASSWORD: Admin1234!
-      MEDIA_ROOT: /media
     volumes:
       - .:/app
       - pettech_media:/media
@@ -68,5 +41,4 @@ networks:
 
 volumes:
   postgres_data:
-  minio_data:
   pettech_media:
