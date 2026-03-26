@@ -1,4 +1,5 @@
-from apps.adopciones.infrastructure.models import SolicitudAdopcion, Adopcion
+from apps.adopciones.infrastructure.models import SolicitudAdopcion, Adopcion, CalendarioVacunacion, EntradaCalendario
+from apps.adopciones.domain.vaccination import VacunaRecomendada
 
 
 class SolicitudRepository:
@@ -56,3 +57,37 @@ class AdopcionRepository:
             'solicitud__familia',
             'solicitud__familia__usuario',
         ).all().order_by('-fecha_adopcion')
+
+
+class CalendarioRepository:
+    """Repositorio para los calendarios de vacunación (SRP)."""
+
+    def crear_con_entradas(
+        self,
+        adopcion: Adopcion,
+        vacunas: list[VacunaRecomendada],
+        notas: str = '',
+    ) -> CalendarioVacunacion:
+        calendario = CalendarioVacunacion.objects.create(adopcion=adopcion, notas=notas)
+        EntradaCalendario.objects.bulk_create([
+            EntradaCalendario(
+                calendario=calendario,
+                nombre_vacuna=v.nombre,
+                descripcion=v.descripcion,
+                fecha_sugerida=v.fecha_sugerida,
+                es_refuerzo=v.es_refuerzo,
+            )
+            for v in vacunas
+        ])
+        return calendario
+
+    def obtener_por_adopcion(self, adopcion_id: int) -> CalendarioVacunacion | None:
+        try:
+            return (
+                CalendarioVacunacion.objects
+                .prefetch_related('entradas')
+                .select_related('adopcion__solicitud__mascota', 'adopcion__solicitud__familia')
+                .get(adopcion_id=adopcion_id)
+            )
+        except CalendarioVacunacion.DoesNotExist:
+            return None
