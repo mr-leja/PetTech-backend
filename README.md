@@ -5,7 +5,7 @@ API REST con Django 5, Clean Architecture, JWT y PostgreSQL.
 ## Stack
 - Python 3.12, Django 5, Django REST Framework
 - PostgreSQL 16
-- Almacenamiento de imágenes: Amazon S3 (producción) / filesystem local (desarrollo)
+- Almacenamiento de imágenes: Cloudinary (producción) / filesystem local (desarrollo)
 - JWT via `djangorestframework-simplejwt`
 - Podman / podman-compose
 
@@ -158,39 +158,44 @@ python manage.py runserver
 
 ---
 
-## Almacenamiento de imágenes con Amazon S3
+## Almacenamiento de imágenes con Cloudinary
 
-Las fotos de mascotas y los carnets de vacunas pueden almacenarse en S3.  
-Por defecto (`USE_S3=False`) se usa el sistema de archivos local (carpeta `media/`).
+Las fotos de mascotas y los carnets de vacunas se almacenan en [Cloudinary](https://cloudinary.com) (plan gratuito disponible).  
+Por defecto (`USE_CLOUDINARY=False`) se usa el sistema de archivos local (carpeta `media/`).
 
-### Activar S3
+### Cómo acceder a las imágenes
 
-1. **Crear el bucket** en AWS (p. ej. `pettech-fotos`) en la región deseada.
-2. Habilitar acceso público de lectura para los objetos del bucket (o usar CloudFront).
-3. Crear un usuario IAM con política `AmazonS3FullAccess` (o política mínima sobre ese bucket) y obtener `Access Key ID` y `Secret Access Key`.
-4. Copiar `.env.example` a `.env` y completar las variables:
+Cloudinary devuelve una **URL pública directa** por cada archivo subido. El serializer de mascotas expone los campos `foto_url` y `carnet_vacunas_url` con esas URLs. Ejemplo:
 
-```env
-USE_S3=True
-AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS_REGION=us-east-1
-AWS_S3_BUCKET_NAME=pettech-fotos
-# Dominio personalizado (CloudFront u otro CDN) — opcional
-AWS_S3_CUSTOM_DOMAIN=
+```
+https://res.cloudinary.com/<cloud_name>/image/upload/v1234567890/mascotas/foto_abc123.jpg
 ```
 
-5. Reiniciar el servidor. Las imágenes nuevas se subirán automáticamente a S3.  
-   Las imágenes guardadas localmente **no** se migran automáticamente; deben subirse al bucket manualmente si es necesario.
+Puedes pegar esa URL en el navegador para ver la imagen. Cloudinary también permite transformaciones en la URL:
+- Miniatura 200×200: `.../c_fill,w_200,h_200/mascotas/foto_abc123.jpg`
+- Calidad reducida: `.../q_auto/mascotas/foto_abc123.jpg`
 
-### Variables de entorno S3
+### Activar Cloudinary en producción
 
-| Variable | Descripción | Requerida con USE_S3=True |
+1. **Crear cuenta gratuita** en [cloudinary.com](https://cloudinary.com) (25 GB de almacenamiento en el plan free).
+2. Ir a **Console → Settings → API Keys** y copiar `Cloud name`, `API Key` y `API Secret`.
+3. Copiar `.env.example` a `.env` y completar las variables:
+
+```env
+USE_CLOUDINARY=True
+CLOUDINARY_CLOUD_NAME=mi-cloud-name
+CLOUDINARY_API_KEY=123456789012345
+CLOUDINARY_API_SECRET=AbCdEfGhIjKlMnOpQrStUvWxYz0
+```
+
+4. Reiniciar el servidor. Las imágenes nuevas se subirán automáticamente a Cloudinary.  
+   Las imágenes guardadas localmente **no** se migran automáticamente.
+
+### Variables de entorno Cloudinary
+
+| Variable | Descripción | Requerida con `USE_CLOUDINARY=True` |
 |---|---|---|
-| `USE_S3` | Activa (`True`) o desactiva (`False`) S3 | Siempre |
-| `AWS_ACCESS_KEY_ID` | Clave de acceso IAM | Sí |
-| `AWS_SECRET_ACCESS_KEY` | Clave secreta IAM | Sí |
-| `AWS_REGION` | Región del bucket (ej. `us-east-1`) | Sí |
-| `AWS_S3_BUCKET_NAME` | Nombre del bucket | Sí |
-| `AWS_S3_CUSTOM_DOMAIN` | CDN / dominio personalizado | No |
-| `AWS_S3_ENDPOINT_URL` | Endpoint alternativo (p. ej. MinIO local) | No |
+| `USE_CLOUDINARY` | Activa (`True`) o desactiva (`False`) Cloudinary | Siempre |
+| `CLOUDINARY_CLOUD_NAME` | Nombre del cloud (visible en el dashboard) | Sí |
+| `CLOUDINARY_API_KEY` | API Key del cloud | Sí |
+| `CLOUDINARY_API_SECRET` | API Secret del cloud | Sí |

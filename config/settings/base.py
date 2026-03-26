@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'cloudinary',
+    'cloudinary_storage',
     # Local apps
     'apps.usuarios',
     'apps.mascotas',
@@ -136,29 +138,19 @@ CORS_ALLOWED_ORIGINS = env.list(
 )
 CORS_ALLOW_CREDENTIALS = True
 
-# S3 / Storage ----------------------------------------------------------------
-# USE_S3=True  →  sube archivos a Amazon S3 (producción).
-# USE_S3=False →  guarda archivos en el sistema de archivos local (desarrollo).
-USE_S3 = env.bool('USE_S3', default=False)
+# Cloudinary / Storage --------------------------------------------------------
+# USE_CLOUDINARY=True  →  sube archivos a Cloudinary (producción).
+# USE_CLOUDINARY=False →  guarda archivos en disco local (desarrollo).
+USE_CLOUDINARY = env.bool('USE_CLOUDINARY', default=False)
 
-if USE_S3:
-    # --- Credenciales y configuración ---
-    AWS_ACCESS_KEY_ID     = env('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = env('AWS_S3_BUCKET_NAME')
-    AWS_S3_REGION_NAME    = env('AWS_REGION', default='us-east-1')
-    # Para MinIO local en desarrollo: env('AWS_S3_ENDPOINT_URL', default=None)
-    AWS_S3_ENDPOINT_URL   = env('AWS_S3_ENDPOINT_URL', default=None)
-    AWS_S3_FILE_OVERWRITE = False
-    AWS_DEFAULT_ACL       = 'public-read'
-    AWS_S3_CUSTOM_DOMAIN  = env('AWS_S3_CUSTOM_DOMAIN', default=None)
-
-    STORAGES = {
-        'default': {'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage'},
-        'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+if USE_CLOUDINARY:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME'),
+        'API_KEY':    env('CLOUDINARY_API_KEY'),
+        'API_SECRET': env('CLOUDINARY_API_SECRET'),
     }
-    # Las URLs públicas son absolutas; no se usa MEDIA_URL local
-    MEDIA_URL = env('MEDIA_URL', default=f'https://{env("AWS_S3_BUCKET_NAME", default="")}.s3.{env("AWS_REGION", default="us-east-1")}.amazonaws.com/')
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    MEDIA_URL = f'https://res.cloudinary.com/{env("CLOUDINARY_CLOUD_NAME")}/'
 else:
     # Almacenamiento local
     MEDIA_URL  = '/media/'

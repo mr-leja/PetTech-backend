@@ -42,7 +42,7 @@ class MascotaSerializer(serializers.ModelSerializer):
         if not obj.foto:
             return None
         url = obj.foto.url
-        # S3/storages devuelve URLs absolutas; local requiere build_absolute_uri
+        # Cloudinary devuelve URLs absolutas; local requiere build_absolute_uri
         if url.startswith('http'):
             return url
         request = self.context.get('request')
