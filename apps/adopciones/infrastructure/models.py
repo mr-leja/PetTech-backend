@@ -53,3 +53,45 @@ class Adopcion(models.Model):
 
     def __str__(self):
         return f'Adopción #{self.id} — {self.solicitud.familia.nombre_familia} adoptó a {self.solicitud.mascota.nombre}'
+
+
+class CalendarioVacunacion(models.Model):
+    """Una por cada adopción confirmada. Generado automáticamente al aprobar."""
+    adopcion = models.OneToOneField(
+        Adopcion,
+        on_delete=models.CASCADE,
+        related_name='calendario',
+    )
+    notas = models.TextField(blank=True)
+    fecha_generacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'calendarios_vacunacion'
+        verbose_name = 'Calendario de Vacunación'
+        verbose_name_plural = 'Calendarios de Vacunación'
+
+    def __str__(self):
+        return f'Calendario #{self.id} — {self.adopcion}'
+
+
+class EntradaCalendario(models.Model):
+    """Cada vacuna recomendada dentro de un CalendarioVacunacion."""
+    calendario = models.ForeignKey(
+        CalendarioVacunacion,
+        on_delete=models.CASCADE,
+        related_name='entradas',
+    )
+    nombre_vacuna = models.CharField(max_length=150)
+    descripcion = models.TextField(blank=True)
+    fecha_sugerida = models.DateField()
+    es_refuerzo = models.BooleanField(default=False)
+    completada = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'entradas_calendario'
+        verbose_name = 'Entrada de Calendario'
+        verbose_name_plural = 'Entradas de Calendario'
+        ordering = ['fecha_sugerida']
+
+    def __str__(self):
+        return f'{self.nombre_vacuna} — {self.fecha_sugerida}'
