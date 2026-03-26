@@ -1,5 +1,32 @@
+import re
 from rest_framework import serializers
+from django.conf import settings
+import cloudinary
 from apps.mascotas.infrastructure.models import Mascota
+
+
+def _cloudinary_url(name: str, resource_type: str = 'image') -> str | None:
+    """
+    Construye una URL válida de Cloudinary a partir del nombre guardado en la BD.
+
+    django-cloudinary-storage 0.3.x almacena el valor de retorno de _save() como
+    nombre del campo. En algunas configuraciones guarda la URL completa con una
+    sola barra (https:/res.cloudinary.com/...) en lugar del public_id puro.  Este
+    helper extrae el public_id real en ambos casos.
+    """
+    if not name:
+        return None
+    cloud = settings.CLOUDINARY_STORAGE.get('CLOUD_NAME', '')
+    # Caso: nombre guardado como URL de Cloudinary (posiblemente con https:/ simple)
+    match = re.search(r'cloudinary\.com/([^/]+)/(.+)$', name)
+    if match:
+        cloud = match.group(1)
+        path = match.group(2)
+        # Quitar prefijo de resource_type si ya está presente (image/upload/, raw/upload/…)
+        path = re.sub(r'^(?:image|raw|video)/upload/(?:v\d+/)?', '', path)
+        return f'https://res.cloudinary.com/{cloud}/{resource_type}/upload/{path}'
+    # Caso: nombre es directamente el public_id
+    return f'https://res.cloudinary.com/{cloud}/{resource_type}/upload/{name}'
 
 _WRITE_FIELDS = [
     'nombre', 'especie', 'raza', 'edad_anios', 'edad_unidad',
@@ -39,18 +66,21 @@ class MascotaSerializer(serializers.ModelSerializer):
         return obj.registrado_por.email if obj.registrado_por else None
 
     def get_foto_url(self, obj):
-        if not obj.foto:
+        if not obj.foto or not obj.foto.name:
             return None
+        if getattr(settings, 'USE_CLOUDINARY', False):
+            return _cloudinary_url(obj.foto.name, 'image')
         url = obj.foto.url
-        # Cloudinary devuelve URLs absolutas; local requiere build_absolute_uri
         if url.startswith('http'):
             return url
         request = self.context.get('request')
         return request.build_absolute_uri(url) if request else url
 
     def get_carnet_vacunas_url(self, obj):
-        if not obj.carnet_vacunas:
+        if not obj.carnet_vacunas or not obj.carnet_vacunas.name:
             return None
+        if getattr(settings, 'USE_CLOUDINARY', False):
+            return _cloudinary_url(obj.carnet_vacunas.name, 'raw')
         url = obj.carnet_vacunas.url
         if url.startswith('http'):
             return url

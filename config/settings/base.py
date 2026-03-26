@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import environ
+import cloudinary
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -143,18 +144,23 @@ CORS_ALLOW_CREDENTIALS = True
 # USE_CLOUDINARY=False →  guarda archivos en disco local (desarrollo).
 USE_CLOUDINARY = env.bool('USE_CLOUDINARY', default=False)
 
+MEDIA_URL  = '/media/'
+MEDIA_ROOT = env('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
+
 if USE_CLOUDINARY:
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME'),
         'API_KEY':    env('CLOUDINARY_API_KEY'),
         'API_SECRET': env('CLOUDINARY_API_SECRET'),
     }
+    # Inicializar el SDK de Cloudinary para que _cloudinary_url() funcione en el serializer
+    cloudinary.config(
+        cloud_name=env('CLOUDINARY_CLOUD_NAME'),
+        api_key=env('CLOUDINARY_API_KEY'),
+        api_secret=env('CLOUDINARY_API_SECRET'),
+        secure=True,
+    )
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_URL = f'https://res.cloudinary.com/{env("CLOUDINARY_CLOUD_NAME")}/'
-else:
-    # Almacenamiento local
-    MEDIA_URL  = '/media/'
-    MEDIA_ROOT = env('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
 
 # Admin defaults
 DEFAULT_ADMIN_EMAIL = env('DEFAULT_ADMIN_EMAIL', default='admin@pettech.com')
