@@ -1,7 +1,6 @@
 import re
 from rest_framework import serializers
 from django.conf import settings
-import cloudinary
 from apps.mascotas.infrastructure.models import Mascota
 
 
@@ -27,6 +26,7 @@ def _cloudinary_url(name: str, resource_type: str = 'image') -> str | None:
         return f'https://res.cloudinary.com/{cloud}/{resource_type}/upload/{path}'
     # Caso: nombre es directamente el public_id
     return f'https://res.cloudinary.com/{cloud}/{resource_type}/upload/{name}'
+
 
 _WRITE_FIELDS = [
     'nombre', 'especie', 'raza', 'edad_anios', 'edad_unidad',

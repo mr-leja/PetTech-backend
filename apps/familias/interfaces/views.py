@@ -6,7 +6,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from core.permissions import IsAdministrador
 from apps.familias.infrastructure.repositories import FamiliaRepository
-from apps.familias.infrastructure.models import Familia
 from apps.familias.interfaces.serializers import (
     FamiliaSerializer,
     FamiliaCreateSerializer,

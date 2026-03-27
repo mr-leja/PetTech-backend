@@ -4,9 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from core.permissions import IsAdminOrReadOnly, IsAdministrador
+from core.permissions import IsAdminOrReadOnly
 from core.pagination import StandardPagination
-from apps.mascotas.infrastructure.models import Mascota
 from apps.mascotas.infrastructure.repositories import MascotaRepository
 from apps.mascotas.interfaces.serializers import (
     MascotaSerializer,

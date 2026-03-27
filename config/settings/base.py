@@ -144,7 +144,7 @@ CORS_ALLOW_CREDENTIALS = True
 # USE_CLOUDINARY=False →  guarda archivos en disco local (desarrollo).
 USE_CLOUDINARY = env.bool('USE_CLOUDINARY', default=False)
 
-MEDIA_URL  = '/media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = env('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
 
 if USE_CLOUDINARY:

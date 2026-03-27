@@ -4,7 +4,6 @@ Cubre: VaccinationScheduleGenerator, protocolos por especie,
        detección cachorro/adulto, filtrado por historial.
 """
 from datetime import date
-import pytest
 
 from apps.adopciones.domain.vaccination import (
     VaccinationScheduleGenerator,

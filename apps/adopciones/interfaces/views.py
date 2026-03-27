@@ -5,7 +5,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from core.permissions import IsAdministrador
-from apps.adopciones.infrastructure.models import SolicitudAdopcion
 from apps.adopciones.infrastructure.repositories import SolicitudRepository, AdopcionRepository, CalendarioRepository
 from apps.adopciones.interfaces.serializers import (
     SolicitudAdopcionSerializer,

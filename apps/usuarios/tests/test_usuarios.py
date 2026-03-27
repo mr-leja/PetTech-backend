@@ -5,7 +5,6 @@ Covers: registro, login, protección de endpoints, roles.
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
-from model_bakery import baker
 
 Usuario = get_user_model()
 

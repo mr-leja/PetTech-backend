@@ -194,4 +194,3 @@ class CalendarioVacunacionSerializer(serializers.ModelSerializer):
         if mascota.foto and request:
             return request.build_absolute_uri(mascota.foto.url)
         return None
-

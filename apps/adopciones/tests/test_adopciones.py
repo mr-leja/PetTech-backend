@@ -10,10 +10,8 @@ from rest_framework.test import APIClient
 from model_bakery import baker
 
 from apps.adopciones.infrastructure.models import (
-    SolicitudAdopcion,
     Adopcion,
     CalendarioVacunacion,
-    EntradaCalendario,
 )
 from apps.adopciones.infrastructure.repositories import (
     SolicitudRepository,

@@ -9,7 +9,7 @@ Principios SOLID aplicados:
 - DIP  : VaccinationScheduleGenerator recibe los datos de dominio puros, sin dependencias de ORM.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Protocol, runtime_checkable
 
