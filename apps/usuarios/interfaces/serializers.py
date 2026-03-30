@@ -2,13 +2,13 @@ import re
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email as django_validate_email
+from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from apps.usuarios.infrastructure.models import Usuario
 
 _PASSWORD_COMPLEXITY_REGEX = re.compile(
     r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};\':"|,.<>/?])'
 )
-from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from apps.usuarios.infrastructure.models import Usuario
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
