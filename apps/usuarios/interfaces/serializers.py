@@ -1,3 +1,11 @@
+import re
+
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.validators import validate_email as django_validate_email
+
+_PASSWORD_COMPLEXITY_REGEX = re.compile(
+    r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};\':"|,.<>/?])'
+)
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from apps.usuarios.infrastructure.models import Usuario
@@ -33,6 +41,23 @@ class RegistroSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['email', 'password', 'password_confirm']
 
+    def validate_email(self, value: str) -> str:
+        value = value.strip().lower()
+        try:
+            django_validate_email(value)
+        except DjangoValidationError:
+            raise serializers.ValidationError('Ingresa un correo electrónico válido.')
+        if Usuario.objects.filter(email=value).exists():
+            raise serializers.ValidationError('Este correo ya está registrado.')
+        return value
+
+    def validate_password(self, value: str) -> str:
+        if not _PASSWORD_COMPLEXITY_REGEX.search(value):
+            raise serializers.ValidationError(
+                'La contraseña debe incluir al menos una letra, un número y un carácter especial.'
+            )
+        return value
+
     def validate(self, attrs):
         if attrs['password'] != attrs['password_confirm']:
             raise serializers.ValidationError({'password_confirm': 'Las contraseñas no coinciden.'})
@@ -53,3 +78,16 @@ class UsuarioSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['id', 'email', 'nombre', 'rol', 'perfil_completo', 'fecha_creacion']
         read_only_fields = ['id', 'fecha_creacion']
+
+    def validate_email(self, value: str) -> str:
+        value = value.strip().lower()
+        try:
+            django_validate_email(value)
+        except DjangoValidationError:
+            raise serializers.ValidationError('Ingresa un correo electrónico válido.')
+        qs = Usuario.objects.filter(email=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError('Este correo ya está registrado.')
+        return value
