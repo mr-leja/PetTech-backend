@@ -34,6 +34,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class RegistroSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        max_length=254,
+        error_messages={'invalid': 'Ingresa un correo electrónico válido.'},
+        validators=[],
+    )
     password = serializers.CharField(write_only=True, min_length=8)
     password_confirm = serializers.CharField(write_only=True)
 
