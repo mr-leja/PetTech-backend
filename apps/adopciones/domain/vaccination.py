@@ -1,22 +1,7 @@
-"""
-Dominio: lógica de generación de calendario de vacunación (HU-14).
-
-Principios SOLID aplicados:
-- SRP  : cada protocolo de especie es una clase/función con una sola responsabilidad.
-- OCP  : extender con nuevas especies sin modificar el código existente (registro en PROTOCOLO_POR_ESPECIE).
-- LSP  : VacunaRecomendada es el contrato único usado por todos los protocolos.
-- ISP  : la interfaz pública es generate_schedule() — los detalles internos son privados.
-- DIP  : VaccinationScheduleGenerator recibe los datos de dominio puros, sin dependencias de ORM.
-"""
 
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Protocol, runtime_checkable
-
-
-# ---------------------------------------------------------------------------
-# Value objects de dominio
-# ---------------------------------------------------------------------------
 
 @dataclass(frozen=True)
 class VacunaRecomendada:
@@ -31,11 +16,6 @@ class CalendarioGenerado:
     vacunas: list[VacunaRecomendada]
     notas: str = ''
 
-
-# ---------------------------------------------------------------------------
-# Protocolo (interfaz) que deben cumplir los generadores por especie
-# ---------------------------------------------------------------------------
-
 @runtime_checkable
 class EspecieProtocolo(Protocol):
     """SRP + ISP: cada especie implementa únicamente su propio protocolo."""
@@ -47,11 +27,6 @@ class EspecieProtocolo(Protocol):
         edad_unidad: str,
         historial_nombres: set[str],
     ) -> list[VacunaRecomendada]: ...
-
-
-# ---------------------------------------------------------------------------
-# Helpers internos
-# ---------------------------------------------------------------------------
 
 _ES_CACHORRO_LIMITE_MESES = 12   # ≤ 12 meses → cachorro
 
@@ -69,11 +44,6 @@ def _ya_vacunado(vacuna: str, historial: set[str]) -> bool:
 
 def _fecha(base: date, dias: int) -> date:
     return base + timedelta(days=dias)
-
-
-# ---------------------------------------------------------------------------
-# Implementaciones por especie
-# ---------------------------------------------------------------------------
 
 class ProtocoloPerro:
     """Protocolo canino: Parvovirus, Moquillo, Hepatitis, Rabia, Bivalente."""
@@ -261,11 +231,6 @@ class ProtocoloGenerico:
             )
         ]
 
-
-# ---------------------------------------------------------------------------
-# Registro OCP: nuevas especies → agregar aquí sin modificar lo anterior
-# ---------------------------------------------------------------------------
-
 _PROTOCOLO_POR_ESPECIE: dict[str, EspecieProtocolo] = {
     'PERRO':   ProtocoloPerro(),
     'GATO':    ProtocoloGato(),
@@ -273,10 +238,6 @@ _PROTOCOLO_POR_ESPECIE: dict[str, EspecieProtocolo] = {
     'HAMSTER': ProtocoloGenerico(),
 }
 
-
-# ---------------------------------------------------------------------------
-# Servicio de dominio público (DIP: recibe datos puros, sin ORM)
-# ---------------------------------------------------------------------------
 
 class VaccinationScheduleGenerator:
     """
@@ -325,5 +286,4 @@ class VaccinationScheduleGenerator:
         return CalendarioGenerado(vacunas=vacunas, notas=notas)
 
 
-# Instancia singleton para uso desde la capa de infraestructura (DIP)
 schedule_generator = VaccinationScheduleGenerator()
