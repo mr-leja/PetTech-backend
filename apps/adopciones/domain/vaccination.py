@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Protocol, runtime_checkable
 
+
 @dataclass(frozen=True)
 class VacunaRecomendada:
     nombre: str
@@ -16,6 +17,7 @@ class CalendarioGenerado:
     vacunas: list[VacunaRecomendada]
     notas: str = ''
 
+
 @runtime_checkable
 class EspecieProtocolo(Protocol):
     """SRP + ISP: cada especie implementa únicamente su propio protocolo."""
@@ -27,6 +29,7 @@ class EspecieProtocolo(Protocol):
         edad_unidad: str,
         historial_nombres: set[str],
     ) -> list[VacunaRecomendada]: ...
+
 
 _ES_CACHORRO_LIMITE_MESES = 12   # ≤ 12 meses → cachorro
 
@@ -44,6 +47,7 @@ def _ya_vacunado(vacuna: str, historial: set[str]) -> bool:
 
 def _fecha(base: date, dias: int) -> date:
     return base + timedelta(days=dias)
+
 
 class ProtocoloPerro:
     """Protocolo canino: Parvovirus, Moquillo, Hepatitis, Rabia, Bivalente."""
@@ -230,6 +234,7 @@ class ProtocoloGenerico:
                 fecha_sugerida=_fecha(fecha_adopcion, 7),
             )
         ]
+
 
 _PROTOCOLO_POR_ESPECIE: dict[str, EspecieProtocolo] = {
     'PERRO':   ProtocoloPerro(),

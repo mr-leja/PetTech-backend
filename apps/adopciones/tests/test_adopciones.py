@@ -18,6 +18,7 @@ from apps.adopciones.domain.vaccination import VacunaRecomendada
 
 Usuario = get_user_model()
 
+
 @pytest.fixture
 def admin_user(db):
     return Usuario.objects.create_user(
@@ -27,6 +28,7 @@ def admin_user(db):
         is_staff=True,
     )
 
+
 @pytest.fixture
 def familia_user(db):
     return Usuario.objects.create_user(
@@ -34,6 +36,7 @@ def familia_user(db):
         password="Familia1234!",
         rol="FAMILIA",
     )
+
 
 @pytest.fixture
 def familia(db, familia_user):
@@ -46,6 +49,7 @@ def familia(db, familia_user):
         ciudad="Bogotá",
         departamento="Cundinamarca",
     )
+
 
 @pytest.fixture
 def mascota_disponible(db, admin_user):
