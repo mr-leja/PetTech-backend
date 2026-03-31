@@ -154,7 +154,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectBaseDir=./MVP_PetTech
             -Dsonar.sources=apps,core
             -Dsonar.exclusions=**/migrations/**,**/__pycache__/**,**/admin.py,**/apps.py,manage.py,start.py
             -Dsonar.tests=apps
