@@ -111,13 +111,57 @@ jobs:
           coverage report --fail-under=80 \
             --omit="*/migrations/*,*/admin.py,*/apps.py,manage.py,start.py"
 
+      - name: Generate coverage reports for SonarCloud
+        run: |
+          coverage xml -o coverage.xml \
+            --omit="*/migrations/*,*/admin.py,*/apps.py,manage.py,start.py"
+          coverage html \
+            --omit="*/migrations/*,*/admin.py,*/apps.py,manage.py,start.py"
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage-report
-          path: htmlcov/
+          path: |
+            htmlcov/
+            coverage.xml
           retention-days: 7
+
+  # ────────────────────────────────────────────────
+  # JOB 2.5 — SonarCloud Analysis
+  # ────────────────────────────────────────────────
+  sonar:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: ./
+
+      - name: Run SonarCloud Analysis
+        uses: SonarSource/sonarcloud-github-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectBaseDir=./MVP_PetTech
+            -Dsonar.sources=apps,core
+            -Dsonar.exclusions=**/migrations/**,**/__pycache__/**,**/admin.py,**/apps.py,manage.py,start.py
+            -Dsonar.tests=apps
+            -Dsonar.test.inclusions=apps/**/tests/**/*.py
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.python.version=3.12
+            -Dsonar.coverage.exclusions=**/migrations/**,apps/*/admin.py,apps/*/apps.py,manage.py,start.py,config/**
 
   # ────────────────────────────────────────────────
   # JOB 3 — Build Docker image
@@ -125,7 +169,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: test
+    needs: sonar
 
     steps:
       - uses: actions/checkout@v4
