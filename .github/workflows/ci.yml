@@ -152,17 +152,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=mr-leja_PetTech-backend
-            -Dsonar.organization=mr-leja
-            -Dsonar.sources=apps,core
-            -Dsonar.exclusions=**/migrations/**,**/__pycache__/**,**/admin.py,**/apps.py,manage.py,start.py
-            -Dsonar.tests=apps
-            -Dsonar.test.inclusions=apps/**/tests/**/*.py
-            -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.python.version=3.12
-            -Dsonar.coverage.exclusions=**/migrations/**,apps/*/admin.py,apps/*/apps.py,manage.py,start.py,config/**
 
   # ────────────────────────────────────────────────
   # JOB 3 — Build Docker image
