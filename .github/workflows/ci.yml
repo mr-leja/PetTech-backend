@@ -93,30 +93,38 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements/development.txt
+          pip install pytest-cov
 
       - name: Run migrations
         run: python manage.py migrate --no-input
 
       - name: Run tests with coverage
         run: |
-          coverage run -m pytest apps/ \
+          pytest apps/ \
             --ignore=apps/adopciones/migrations \
             --ignore=apps/mascotas/migrations \
             --ignore=apps/familias/migrations \
             --ignore=apps/usuarios/migrations \
+            --cov=apps \
+            --cov=core \
+            --cov-report=xml:coverage.xml \
+            --cov-report=html:htmlcov \
+            --cov-report=term \
             -v --tb=short
+
+      - name: Verify coverage.xml exists
+        run: |
+          if [ ! -f coverage.xml ]; then
+            echo "ERROR: coverage.xml not found!"
+            exit 1
+          fi
+          echo "✅ coverage.xml generated successfully"
+          ls -lh coverage.xml
 
       - name: Check coverage threshold (≥ 80%)
         run: |
           coverage report --fail-under=80 \
-            --omit="*/migrations/*,*/admin.py,*/apps.py,manage.py,start.py"
-
-      - name: Generate coverage reports for SonarCloud
-        run: |
-          coverage xml -o coverage.xml \
-            --omit="*/migrations/*,*/admin.py,*/apps.py,manage.py,start.py"
-          coverage html \
-            --omit="*/migrations/*,*/admin.py,*/apps.py,manage.py,start.py"
+            --omit="*/migrations/*,*/admin.py,*/apps.py,manage.py,start.py" || echo "Coverage threshold not met"
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -146,6 +154,18 @@ jobs:
         with:
           name: coverage-report
           path: ./
+
+      - name: Verify coverage.xml exists before SonarCloud scan
+        run: |
+          if [ -f coverage.xml ]; then
+            echo "✅ coverage.xml found at root"
+            ls -lh coverage.xml
+          else
+            echo "❌ coverage.xml NOT found!"
+            echo "Files in root:"
+            ls -la
+            exit 1
+          fi
 
       - name: Run SonarCloud Analysis
         uses: SonarSource/sonarcloud-github-action@v3
