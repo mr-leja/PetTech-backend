@@ -154,6 +154,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
+            -Dsonar.projectKey=pettech_backend
+            -Dsonar.organization=mr-leja
             -Dsonar.sources=apps,core
             -Dsonar.exclusions=**/migrations/**,**/__pycache__/**,**/admin.py,**/apps.py,manage.py,start.py
             -Dsonar.tests=apps
