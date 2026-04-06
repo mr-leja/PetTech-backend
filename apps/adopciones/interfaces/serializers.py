@@ -157,13 +157,33 @@ class AdopcionSerializer(serializers.ModelSerializer):
 
 
 class EntradaCalendarioSerializer(serializers.ModelSerializer):
+    foto_comprobante_url = serializers.SerializerMethodField()
+
     class Meta:
         model = EntradaCalendario
         fields = [
             'id', 'nombre_vacuna', 'descripcion',
             'fecha_sugerida', 'es_refuerzo', 'completada',
+            'foto_comprobante_url',
         ]
         read_only_fields = ['id']
+
+    def get_foto_comprobante_url(self, obj):
+        request = self.context.get('request')
+        if obj.foto_comprobante and request:
+            return request.build_absolute_uri(obj.foto_comprobante.url)
+        return None
+
+
+class MarcarVacunaAplicadaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EntradaCalendario
+        fields = ['foto_comprobante']
+
+    def validate_foto_comprobante(self, value):
+        if not value:
+            raise serializers.ValidationError('La foto del comprobante es obligatoria.')
+        return value
 
 
 class CalendarioVacunacionSerializer(serializers.ModelSerializer):

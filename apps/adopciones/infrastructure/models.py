@@ -86,6 +86,7 @@ class EntradaCalendario(models.Model):
     fecha_sugerida = models.DateField()
     es_refuerzo = models.BooleanField(default=False)
     completada = models.BooleanField(default=False)
+    foto_comprobante = models.ImageField(upload_to='comprobantes_vacunas/', null=True, blank=True)
 
     class Meta:
         db_table = 'entradas_calendario'

@@ -11,6 +11,8 @@ from apps.adopciones.interfaces.serializers import (
     SolicitudAdopcionCreateSerializer,
     AdopcionSerializer,
     CalendarioVacunacionSerializer,
+    EntradaCalendarioSerializer,
+    MarcarVacunaAplicadaSerializer,
 )
 from apps.adopciones.domain.exceptions import (
     SolicitudNoEncontrada,
@@ -313,3 +315,54 @@ class CalendarioVacunacionView(APIView):
 
         serializer = CalendarioVacunacionSerializer(calendario, context={'request': request})
         return Response(serializer.data)
+
+
+class MarcarVacunaAplicadaView(APIView):
+    """
+    PATCH /api/v1/adopciones/entradas/<entrada_id>/aplicar/
+
+    Marca una entrada del calendario como completada y guarda el comprobante.
+    - FAMILIA: sólo puede marcar entradas de sus propias adopciones.
+    - ADMIN: puede marcar cualquier entrada.
+    La foto del comprobante es obligatoria.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, entrada_id: int):
+        from apps.adopciones.infrastructure.models import EntradaCalendario
+
+        try:
+            entrada = EntradaCalendario.objects.select_related(
+                'calendario__adopcion__solicitud__familia__usuario'
+            ).get(pk=entrada_id)
+        except EntradaCalendario.DoesNotExist:
+            return Response({'error': 'Entrada no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+
+        user = request.user
+        if user.rol != 'ADMIN':
+            try:
+                familia = user.familia
+                if entrada.calendario.adopcion.solicitud.familia_id != familia.id:
+                    return Response(
+                        {'error': 'No tienes permiso para actualizar esta entrada.'},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+            except Exception:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
+        if entrada.completada:
+            return Response({'error': 'Esta vacuna ya fue marcada como aplicada.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = MarcarVacunaAplicadaSerializer(
+            entrada, data=request.data, partial=True, context={'request': request}
+        )
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save(completada=True)
+
+        entrada.refresh_from_db()
+        return Response(
+            EntradaCalendarioSerializer(entrada, context={'request': request}).data,
+            status=status.HTTP_200_OK,
+        )
